@@ -1,38 +1,75 @@
 from collections import deque
-
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from matplotlib.animation import FuncAnimation
 
 class Maze:
-    
     def __init__(self):
    
+        # self.maze = [
+        #     ["#", "#", "#", "#", "#", "#", "#", "#", "#", "#"],
+        #     ["#", "S", "0", "0", "#", "0", "0", "0", "0", "#"],
+        #     ["#", "0", "#", "0", "#", "0", "#", "#", "0", "#"],
+        #     ["#", "0", "#", "0", "0", "0", "0", "#", "0", "#"],
+        #     ["#", "0", "#", "#", "#", "0", "#", "#", "0", "#"],
+        #     ["#", "0", "0", "0", "#", "0", "#", "0", "0", "#"],
+        #     ["#", "#", "#", "0", "#", "0", "#", "0", "#", "#"],
+        #     ["#", "0", "0", "0", "0", "0", "0", "0", "#", "#"],
+        #     ["#", "0", "#", "#", "#", "#", "#", "0", "0", "E"],
+        #     ["#", "#", "#", "#", "#", "#", "#", "#", "#", "#"]
+        # ]
+
+        # self.start = (1, 1)
+        # self.end = (8, 9)
+        
+        # self.maze = [
+        #     ["#", "#", "#", "#", "#", "#", "#", "#", "#", "#"],
+        #     ["#", "S", "0", "#", "#", "0", "0", "0", "0", "#"],
+        #     ["#", "0", "0", "0", "#", "0", "#", "#", "0", "#"],
+        #     ["#", "0", "#", "0", "0", "0", "0", "#", "0", "#"],
+        #     ["#", "0", "#", "#", "#", "#", "#", "#", "0", "#"],
+        #     ["#", "0", "0", "0", "#", "0", "#", "0", "0", "#"],
+        #     ["#", "#", "#", "0", "#", "0", "#", "0", "#", "#"],
+        #     ["#", "0", "0", "0", "0", "0", "0", "0", "#", "#"],
+        #     ["#", "0", "#", "#", "#", "#", "#", "0", "0", "E"],
+        #     ["#", "#", "#", "#", "#", "#", "#", "#", "#", "#"]
+        # ]
+        
+        # self.start = (1, 1)
+        # self.end = (8, 9)
+
+        
         self.maze = [
-            ["#", "#", "#", "#", "#", "#", "#", "#", "#", "#"],
-            ["#", "S", "0", "0", "#", "0", "0", "0", "0", "#"],
-            ["#", "0", "#", "0", "#", "0", "#", "#", "0", "#"],
-            ["#", "0", "#", "0", "0", "0", "0", "#", "0", "#"],
-            ["#", "0", "#", "#", "#", "0", "#", "#", "0", "#"],
-            ["#", "0", "0", "0", "#", "0", "#", "0", "0", "#"],
-            ["#", "#", "#", "0", "#", "0", "#", "0", "#", "#"],
-            ["#", "0", "0", "0", "0", "0", "0", "0", "#", "#"],
-            ["#", "0", "#", "#", "#", "#", "#", "0", "0", "E"],
-            ["#", "#", "#", "#", "#", "#", "#", "#", "#", "#"]
+            ["#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#"],
+            ["#", "S", "0", "0", "0", "#", "0", "0", "0", "0", "0", "0", "0", "0", "#"],
+            ["#", "0", "#", "#", "0", "#", "0", "#", "#", "#", "#", "#", "#", "0", "#"],
+            ["#", "0", "#", "0", "0", "0", "0", "0", "#", "0", "#", "0", "0", "0", "#"],
+            ["#", "0", "#", "#", "#", "#", "#", "0", "#", "0", "#", "0", "#", "0", "#"],
+            ["#", "0", "#", "0", "0", "0", "#", "0", "#", "0", "0", "0", "#", "0", "#"],
+            ["#", "0", "#", "0", "#", "0", "#", "0", "0", "0", "#", "0", "#", "0", "#"],
+            ["#", "0", "#", "0", "#", "0", "0", "0", "#", "0", "0", "0", "#", "0", "#"],
+            ["#", "0", "#", "0", "#", "#", "#", "#", "#", "0", "#", "#", "#", "0", "#"],
+            ["#", "0", "#", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "#"],
+            ["#", "0", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "0", "#"],
+            ["#", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "E", "#"],
+            ["#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#"]
         ]
 
         self.start = (1, 1)
-        self.end = (8, 9)
+        self.end = (11, 13)
 
     def bfs(self):
         rows, cols = len(self.maze), len(self.maze[0])
         
         queue = deque([self.start])
-        visited = set()
+        visited = []
         
         # hashmap to hold the child-parent relations of each node | Each child (Node) points to its parent (Node)
         parent = {self.start: None}
         
         while queue:
             curr = queue.popleft()
-            visited.add(curr)
+            visited.append(curr)
             
             # The loop terminates once the end node is reached
             if curr == self.end: 
@@ -49,6 +86,7 @@ class Maze:
                     queue.append((r, c))
                     parent[(r, c)] = (row, col)
         
+        # Starting from the end node, find the path from the end to the start node
         path = deque()
         if self.end in parent:
             step = self.end
@@ -57,13 +95,91 @@ class Maze:
                 path.appendleft(parent[step])
                 step = parent[step]
         
-        return path
+        return path, visited
     
     def backtrack(self):
-        pass
+        
+        rows, cols = len(self.maze), len(self.maze[0])
+        res = deque()
+        visited = []
+        # visited = set()
+        
+        def find_path(row, col, path, visited):
+            
+            if (row, col) == self.end:
+                return True
+            
+            visited.append((row, col))
+            # visited.add((row, col))
+            directions = [(0,1), (1,0), (0,-1), (-1,0)]
+            
+            for dr, dc in directions:
+                r, c = row + dr, col + dc
+                if 0 <= r < rows and 0 <= c < cols and (r, c) not in visited and self.maze[r][c] in ["0", "E"]:
+                    if find_path(r, c, path, visited):
+                        path.appendleft((r,c))
+                        return True
                     
+            visited.pop()
+            return False
+        
+        find_path(self.start[0], self.start[1], res, visited)
+        return list(res), visited
+        
+    def draw_maze(self):
+        fig, ax = plt.subplots()
+        rows, cols = len(self.maze), len(self.maze[0])
+        ax.set_xlim(0, cols)
+        ax.set_ylim(0, rows)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.invert_yaxis()
+        
+        for row in range(rows):
+            for col in range(cols):
+                if self.maze[row][col] == '#':
+                    ax.add_patch(patches.Rectangle((col, row), 1, 1, color='black'))
+                elif self.maze[row][col] == 'S':
+                    ax.add_patch(patches.Rectangle((col, row), 1, 1, color='green'))
+                elif self.maze[row][col] == 'E':
+                    ax.add_patch(patches.Rectangle((col, row), 1, 1, color='red'))
+
+        return fig, ax
+
+    def animate_bfs(self):
+        path, visited = self.bfs()
+        fig, ax = self.draw_maze()
+        
+        def update(frame):
+            row, col = frame
+            ax.add_patch(patches.Rectangle((col, row), 1, 1, color="blue"))
+        
+        anime = FuncAnimation(fig, update, frames=list(visited), repeat=False)
+        plt.show()
+        
+    def animate_backtrack(self):
+        backtracking_path, backtracking_visited = self.backtrack()
+        fig, ax = self.draw_maze()
+        
+        def update(frame):
+            row, col = frame
+            #  backtracking path in yellow
+            ax.add_patch(patches.Rectangle((col, row), 1, 1, color="yellow"))
+
+        anim = FuncAnimation(fig, update, frames=backtracking_visited, repeat=False)
+        plt.show()
+
+
+
+
 
 if __name__ == "__main__":
     testMaze = Maze()
-    path = testMaze.bfs()
-    print(path)
+    testMaze.animate_backtrack()
+    # testMaze.animate_bfs()
+    # print(testMaze.backtrack()[0])
+    # print(testMaze.bfs()[0])
+    
+    
+   
+   
