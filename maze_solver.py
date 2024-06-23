@@ -1,4 +1,5 @@
-from collections import deque
+from collections import deque, defaultdict
+import heapq
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.animation import FuncAnimation
@@ -125,6 +126,46 @@ class Maze:
         
         find_path(self.start[0], self.start[1], res, visited)
         return list(res), visited
+    
+    def dijkstra(self):
+        rows, cols = len(self.maze), len(self.maze[0])
+        
+        # Priority queue 
+        pq = [(0, self.start)]  
+        heapq.heapify(pq)
+        
+        distance = {self.start: 0}
+        
+        parent = {self.start: None}
+        
+        while pq:
+            dist, curr = heapq.heappop(pq)
+            
+            if curr == self.end:
+                break
+            
+            row, col = curr
+            
+            directions = [(0,1), (1,0), (0,-1), (-1,0)]
+            
+            for dr, dc in directions:
+                r, c = row + dr, col + dc
+                if 0 <= r < rows and 0 <= c < cols and self.maze[r][c] in ["0", "E"]:
+                    new_dist = dist + 1
+                    if (r, c) not in distance or new_dist < distance[(r, c)]:
+                        distance[(r, c)] = new_dist
+                        parent[(r, c)] = curr
+                        heapq.heappush(pq, (new_dist, (r, c)))
+        
+        path = deque()
+        step = self.end
+        while step is not None:
+            path.appendleft(step)
+            step = parent[step]
+        
+        return list(path), distance
+        
+        
         
     def draw_maze(self):
         fig, ax = plt.subplots()
@@ -168,6 +209,17 @@ class Maze:
 
         anim = FuncAnimation(fig, update, frames=backtracking_visited, repeat=False)
         plt.show()
+        
+    def animate_dijkstra(self):
+        path, distances = self.dijkstra()
+        fig, ax = self.draw_maze()
+        
+        def update(frame):
+            row, col = frame
+            ax.add_patch(patches.Rectangle((col, row), 1, 1, color="blue"))
+        
+        anime = FuncAnimation(fig, update, frames=path, repeat=False)
+        plt.show()
 
 
 
@@ -175,7 +227,7 @@ class Maze:
 
 if __name__ == "__main__":
     testMaze = Maze()
-    testMaze.animate_backtrack()
+    testMaze.animate_dijkstra()
     # testMaze.animate_bfs()
     # print(testMaze.backtrack()[0])
     # print(testMaze.bfs()[0])
