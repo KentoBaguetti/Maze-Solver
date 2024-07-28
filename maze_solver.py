@@ -180,6 +180,9 @@ class Maze:
         find_path(self.start[0], self.start[1], res, visited)
         return list(res), visited
 
+    def new_backtrack(self):
+        rows, cols = len(self.maze), len(self.maze[0])
+
     def dijkstra(self):
         rows, cols = len(self.maze), len(self.maze[0])
 
